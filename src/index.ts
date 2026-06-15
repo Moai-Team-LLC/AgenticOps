@@ -8,3 +8,12 @@ export { Scheduler } from "./scheduler/scheduler";
 export type { TickResult } from "./scheduler/scheduler";
 export { parseCron, cronMatches, nextFireAfter, fireTimesBetween } from "./scheduler/cron";
 export type { ParsedCron } from "./scheduler/cron";
+export { Telemetry } from "./telemetry/telemetry";
+export type {
+  AuditEvent,
+  AuditInput,
+  AuditKind,
+  AgentHealth,
+  HealthStatus,
+  TelemetryOptions,
+} from "./telemetry/telemetry";
