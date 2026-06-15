@@ -36,7 +36,7 @@ a real fleet exists.
 | `src/manifest` | runtime manifest (M2) | ✅ schema + loader |
 | `src/runner` | bounded execution (M2) | ✅ skeleton |
 | scheduler | coordinated scheduling (M2) | ⬜ planned |
-| backlog | durable backlog (M2) | ⬜ planned |
+| `src/backlog` | durable backlog (M2) | ✅ SQLite (bun:sqlite) |
 | telemetry | fleet observability (M3) | ⬜ planned |
 
 ## Quick look
