@@ -1,0 +1,33 @@
+# Example AgentManifest — an agent as a deployable artifact.
+# Validated by src/manifest/schema.ts; load with loadManifest().
+name: scout
+displayName: "Scout — Market Research Analyst"
+
+runtime: claude-code
+model: claude-opus-4-8
+
+# Agent-logic, kept SEPARATE from the platform/runtime prompt:
+instructionsPath: ./agents/scout/CLAUDE.md
+platformPromptPath: ./agents/scout/.platform.md
+
+limits:
+  maxTurns: 40
+  timeoutMs: 600000 # 10-minute wall-clock ceiling
+  memoryMb: 1024
+
+schedule:
+  cron: "0 7 * * 1" # Mondays 07:00
+  timezone: "Europe/Nicosia"
+
+tools:
+  - web-search
+  - fs-read
+  - fs-write
+
+# Fleet inter-agent permission (default deny). Scout may hand off to Sage:
+mayCall:
+  - sage
+
+# Resolved from the host env at load time — never committed:
+env:
+  EXA_API_KEY: "${EXA_API_KEY}"

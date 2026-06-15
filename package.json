@@ -1,0 +1,36 @@
+{
+  "name": "agenticops",
+  "version": "0.0.0",
+  "description": "Runtime & fleet operations for agentic products — the reference implementation of the Agentic Product Standard's Fleet operations surface.",
+  "type": "module",
+  "license": "Apache-2.0",
+  "author": "Moai Team LLC",
+  "homepage": "https://github.com/Moai-Team-LLC/AgenticOps",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Moai-Team-LLC/AgenticOps.git"
+  },
+  "keywords": [
+    "agents",
+    "agentic",
+    "runtime",
+    "fleet",
+    "scheduler",
+    "orchestration",
+    "agentic-product-standard"
+  ],
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "yaml": "^2.5.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5.5.0"
+  }
+}
