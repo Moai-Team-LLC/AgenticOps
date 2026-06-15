@@ -23,13 +23,13 @@ AgenticOps implements:
 - **Coordinated scheduling** — fleet cron with a lock (fire-once across replicas)
   and misfire handling (fires missed while down are coalesced).
 - **Durable backlog** — overflow / deferred work survives restarts.
-- **Fleet observability** *(planned)* — per-agent health + an append-only ops
-  audit, layered on per-run traces.
+- **Fleet observability** — per-agent health + an append-only ops audit,
+  layered on per-run traces.
 
 Lean over platform: a runner is a function with limits, not a microservice, until
 a real fleet exists.
 
-## Status — walking skeleton
+## Status
 
 | Module | Maps to SCORECARD *Fleet operations* | State |
 |---|---|---|
@@ -37,7 +37,7 @@ a real fleet exists.
 | `src/runner` | bounded execution (M2) | ✅ skeleton |
 | `src/scheduler` | coordinated scheduling + misfire (M2) | ✅ cron + fire-once + coalesce |
 | `src/backlog` | durable backlog (M2) | ✅ SQLite (bun:sqlite) |
-| telemetry | fleet observability (M3) | ⬜ planned |
+| `src/telemetry` | fleet observability (M3) | ✅ audit + health |
 
 ## Quick look
 
