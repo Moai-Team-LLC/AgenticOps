@@ -4,3 +4,7 @@ export { runAgent } from "./runner/runner";
 export type { ExecuteTurn, RunOutcome, TurnResult } from "./runner/runner";
 export { Backlog } from "./backlog/backlog";
 export type { BacklogTask, BacklogStats, EnqueueOptions, ClaimOptions } from "./backlog/backlog";
+export { Scheduler } from "./scheduler/scheduler";
+export type { TickResult } from "./scheduler/scheduler";
+export { parseCron, cronMatches, nextFireAfter, fireTimesBetween } from "./scheduler/cron";
+export type { ParsedCron } from "./scheduler/cron";

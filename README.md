@@ -20,9 +20,9 @@ AgenticOps implements:
   runs dev↔prod; agent-logic stays split from the platform prompt.
 - **Bounded runner** — every run has an explicit max-turns ceiling, a wall-clock
   timeout, and graceful cancellation. No unbounded loops.
-- **Coordinated scheduling** *(planned)* — fleet cron with a lock (fire-once
-  across replicas) and misfire handling.
-- **Durable backlog** *(planned)* — overflow work survives restarts.
+- **Coordinated scheduling** — fleet cron with a lock (fire-once across replicas)
+  and misfire handling (fires missed while down are coalesced).
+- **Durable backlog** — overflow / deferred work survives restarts.
 - **Fleet observability** *(planned)* — per-agent health + an append-only ops
   audit, layered on per-run traces.
 
@@ -35,7 +35,7 @@ a real fleet exists.
 |---|---|---|
 | `src/manifest` | runtime manifest (M2) | ✅ schema + loader |
 | `src/runner` | bounded execution (M2) | ✅ skeleton |
-| scheduler | coordinated scheduling (M2) | ⬜ planned |
+| `src/scheduler` | coordinated scheduling + misfire (M2) | ✅ cron + fire-once + coalesce |
 | `src/backlog` | durable backlog (M2) | ✅ SQLite (bun:sqlite) |
 | telemetry | fleet observability (M3) | ⬜ planned |
 
