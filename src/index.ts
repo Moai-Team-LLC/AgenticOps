@@ -13,6 +13,7 @@ export type {
   AuditEvent,
   AuditInput,
   AuditKind,
+  AuditSink,
   AgentHealth,
   HealthStatus,
   TelemetryOptions,
