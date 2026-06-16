@@ -18,3 +18,5 @@ export type {
   TelemetryOptions,
 } from "./telemetry/telemetry";
 export { CallPolicy } from "./policy/policy";
+export { delegate } from "./delegate";
+export type { DelegateDeps } from "./delegate";

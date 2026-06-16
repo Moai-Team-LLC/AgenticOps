@@ -12,6 +12,7 @@ import {
   AgentManifest,
   Backlog,
   CallPolicy,
+  delegate,
   runAgent,
   Scheduler,
   Telemetry,
@@ -65,7 +66,16 @@ if (task) {
   console.log("run outcome:", outcome);
 }
 
-// 6. Observe the fleet.
+// 6. Enforced inter-agent delegation: scout may call sage; the reverse is denied.
+const delegatedId = delegate({ policy, backlog, telemetry }, "scout", "sage", { ask: "deep-dive the top finding" });
+console.log("scout delegated to sage -> backlog id:", delegatedId);
+try {
+  delegate({ policy, backlog, telemetry }, "sage", "scout", {});
+} catch (err) {
+  console.log("sage  -> scout denied:", (err as Error).message);
+}
+
+// 7. Observe the fleet.
 console.log("backlog:", backlog.stats());
 console.log("health:", telemetry.health());
 console.log("audit:", telemetry.recent().map((e) => `${e.agent} ${e.kind}/${e.action}`));
