@@ -1,5 +1,8 @@
 # AgenticOps
 
+[![Agentic Product Standard: Fleet operations](https://img.shields.io/badge/Agentic_Product_Standard-Fleet_operations-1E607A)](https://github.com/Moai-Team-LLC/agentic-product-standard/blob/main/SCORECARD.md)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue)](LICENSE)
+
 **Runtime & fleet operations for agentic products.** The reference implementation
 of the *Fleet operations* surface of the
 [Agentic Product Standard](https://github.com/Moai-Team-LLC/agentic-product-standard).
