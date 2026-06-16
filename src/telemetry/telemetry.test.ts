@@ -53,3 +53,21 @@ test("audit survives a restart", () => {
   expect(b.recent().length).toBe(1);
   b.close();
 });
+
+test("the optional sink receives each event and a throwing sink is contained", () => {
+  const seen: string[] = [];
+  const t = new Telemetry(":memory:", { sink: (e) => seen.push(`${e.agent}/${e.action}`) });
+  const id = t.audit({ agent: "scout", kind: "lifecycle", action: "started" }, 1000);
+  expect(id).toBeGreaterThan(0);
+  expect(seen).toEqual(["scout/started"]);
+
+  const t2 = new Telemetry(":memory:", {
+    sink: () => {
+      throw new Error("exporter down");
+    },
+  });
+  expect(() => t2.audit({ agent: "scout", kind: "tool", action: "x" })).not.toThrow();
+  expect(t2.recent().length).toBe(1); // durable record intact despite the failing sink
+  t.close();
+  t2.close();
+});

@@ -24,7 +24,10 @@ export type AgentHealth = {
   stale: boolean;
 };
 
-export type TelemetryOptions = { staleAfterMs?: number };
+/** Best-effort exporter hook: receives each audit event as it is recorded. */
+export type AuditSink = (event: AuditEvent) => void;
+
+export type TelemetryOptions = { staleAfterMs?: number; sink?: AuditSink };
 
 type AuditRow = { id: number; at: number; agent: string; kind: string; action: string; detail: string };
 type HealthRow = { agent: string; status: string; lastSeen: number };
@@ -33,17 +36,20 @@ type HealthRow = { agent: string; status: string; lastSeen: number };
  * Fleet observability — an append-only operational audit plus per-agent
  * health/heartbeat, on top of the per-run traces of Layer 6. Backed by SQLite
  * (bun:sqlite). The audit exposes no update/delete API by design; field names
- * (agent / action / detail) stay OTel-GenAI friendly. A streaming OTel exporter
- * is a deliberate follow-up.
+ * (agent / action / detail) stay OTel-GenAI friendly. Pass `sink` to stream each
+ * event to an exporter (OTel / Datadog / console) — best-effort, and never
+ * blocking or breaking the durable record.
  *
  * Maps to SCORECARD.md -> "Fleet operations" (M3, fleet-observability gate).
  */
 export class Telemetry {
   private readonly db: Database;
   private readonly staleAfterMs: number;
+  private readonly sink?: AuditSink;
 
   constructor(path = "agenticops-telemetry.sqlite", opts: TelemetryOptions = {}) {
     this.staleAfterMs = opts.staleAfterMs ?? 90_000;
+    this.sink = opts.sink;
     this.db = new Database(path);
     this.db.exec("PRAGMA journal_mode = WAL;");
     this.db.exec(`
@@ -66,8 +72,9 @@ export class Telemetry {
     `);
   }
 
-  /** Append an immutable audit event. Returns its id. */
+  /** Append an immutable audit event, forwarding it to the optional sink. Returns its id. */
   audit(ev: AuditInput, now = Date.now()): number {
+    const detail = ev.detail ?? null;
     const info = this.db
       .query(
         `INSERT INTO audit (at, agent, kind, action, detail)
@@ -78,9 +85,17 @@ export class Telemetry {
         $agent: ev.agent,
         $kind: ev.kind,
         $action: ev.action,
-        $detail: JSON.stringify(ev.detail ?? null),
+        $detail: JSON.stringify(detail),
       });
-    return Number(info.lastInsertRowid);
+    const id = Number(info.lastInsertRowid);
+    if (this.sink) {
+      try {
+        this.sink({ id, at: now, agent: ev.agent, kind: ev.kind, action: ev.action, detail });
+      } catch {
+        // the durable record already succeeded; a failing exporter must not break the audit path
+      }
+    }
+    return id;
   }
 
   /** Most-recent audit events, newest first; optionally filtered by agent. */
