@@ -46,7 +46,7 @@ const telemetry = new Telemetry(":memory:");
 
 // 4. Arm a schedule and tick the fleet (explicit timestamps for determinism).
 const t0 = Date.UTC(2026, 0, 1, 0, 0, 0);
-scheduler.register(scout.name, "* * * * *", scout.name, { goal: "weekly scan" }, t0);
+scheduler.register(scout.name, "* * * * *", scout.name, { goal: "weekly scan" }, "UTC", t0);
 console.log("tick:", scheduler.tick(t0 + 60_000));
 
 // 5. A worker claims the scheduled task and runs it under bounded execution.

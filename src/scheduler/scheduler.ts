@@ -10,6 +10,7 @@ type ScheduleRow = {
   cron: string;
   agent: string;
   payload: string;
+  timezone: string;
   lastTick: number;
 };
 
@@ -44,6 +45,7 @@ export class Scheduler {
         cron      TEXT NOT NULL,
         agent     TEXT NOT NULL,
         payload   TEXT NOT NULL DEFAULT 'null',
+        timezone  TEXT NOT NULL DEFAULT 'UTC',
         last_tick INTEGER NOT NULL
       );
     `);
@@ -60,16 +62,25 @@ export class Scheduler {
    * Register (or re-arm) a schedule. Counting starts from `now`, so a fresh
    * registration never backfills history. Validates the cron eagerly.
    */
-  register(name: string, cron: string, agent: string, payload: unknown = null, now = Date.now()): void {
+  register(
+    name: string,
+    cron: string,
+    agent: string,
+    payload: unknown = null,
+    timezone = "UTC",
+    now = Date.now(),
+  ): void {
     parseCron(cron); // throws on an invalid expression
+    new Intl.DateTimeFormat("en-US", { timeZone: timezone }); // throws on an invalid timezone
     this.db
       .query(
-        `INSERT INTO schedules (name, cron, agent, payload, last_tick)
-         VALUES ($name, $cron, $agent, $payload, $now)
+        `INSERT INTO schedules (name, cron, agent, payload, timezone, last_tick)
+         VALUES ($name, $cron, $agent, $payload, $timezone, $now)
          ON CONFLICT(name) DO UPDATE SET
            cron = excluded.cron,
            agent = excluded.agent,
            payload = excluded.payload,
+           timezone = excluded.timezone,
            last_tick = excluded.last_tick`,
       )
       .run({
@@ -77,6 +88,7 @@ export class Scheduler {
         $cron: cron,
         $agent: agent,
         $payload: JSON.stringify(payload ?? null),
+        $timezone: timezone,
         $now: now,
       });
   }
@@ -87,12 +99,12 @@ export class Scheduler {
    */
   tick(now = Date.now()): TickResult[] {
     const schedules = this.db
-      .query(`SELECT name, cron, agent, payload, last_tick AS lastTick FROM schedules`)
+      .query(`SELECT name, cron, agent, payload, timezone, last_tick AS lastTick FROM schedules`)
       .all() as ScheduleRow[];
 
     const results: TickResult[] = [];
     for (const s of schedules) {
-      const fires = fireTimesBetween(s.cron, s.lastTick, now);
+      const fires = fireTimesBetween(s.cron, s.lastTick, now, s.timezone);
       let enqueued = false;
       if (fires.length > 0) {
         const fireAt = fires[fires.length - 1]!; // coalesce missed fires to the latest
