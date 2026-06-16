@@ -17,3 +17,4 @@ export type {
   HealthStatus,
   TelemetryOptions,
 } from "./telemetry/telemetry";
+export { CallPolicy } from "./policy/policy";

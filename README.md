@@ -38,6 +38,7 @@ a real fleet exists.
 | `src/scheduler` | coordinated scheduling + misfire (M2) | ✅ cron + fire-once + coalesce |
 | `src/backlog` | durable backlog (M2) | ✅ SQLite (bun:sqlite) |
 | `src/telemetry` | fleet observability (M3) | ✅ audit + health |
+| `src/policy` | inter-agent call matrix (M3) | ✅ default-deny |
 
 ## Quick look
 
@@ -53,6 +54,10 @@ const outcome = await runAgent(manifest, async ({ turn, signal }) => {
 });
 // outcome.status: "completed" | "max-turns" | "timeout" | "cancelled" | "error"
 ```
+
+For the full layer wired together — schedule → backlog → bounded run with audit
+and health — see [`examples/end-to-end.ts`](examples/end-to-end.ts)
+(`bun examples/end-to-end.ts`).
 
 ## License
 
