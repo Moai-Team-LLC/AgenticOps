@@ -66,41 +66,84 @@ export function parseCron(expr: string): ParsedCron {
   };
 }
 
-/** Whether `date` (evaluated in UTC) matches the parsed cron. */
-export function cronMatches(cron: ParsedCron, date: Date): boolean {
-  if (!cron.minute.has(date.getUTCMinutes())) return false;
-  if (!cron.hour.has(date.getUTCHours())) return false;
-  if (!cron.month.has(date.getUTCMonth() + 1)) return false;
-  const domOk = cron.dayOfMonth.has(date.getUTCDate());
-  const dowOk = cron.dayOfWeek.has(date.getUTCDay());
+type Fields = { minute: number; hour: number; day: number; month: number; weekday: number };
+
+const WEEKDAY: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+
+/** Wall-clock fields for `date` in the given IANA timezone (UTC if omitted). */
+function fieldsOf(date: Date, timeZone?: string): Fields {
+  if (timeZone === undefined) {
+    return {
+      minute: date.getUTCMinutes(),
+      hour: date.getUTCHours(),
+      day: date.getUTCDate(),
+      month: date.getUTCMonth() + 1,
+      weekday: date.getUTCDay(),
+    };
+  }
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hourCycle: "h23",
+    weekday: "short",
+    month: "numeric",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+  }).formatToParts(date);
+  const get = (type: string): string => parts.find((p) => p.type === type)?.value ?? "";
+  return {
+    minute: Number(get("minute")),
+    hour: Number(get("hour")) % 24, // some engines render midnight as "24"
+    day: Number(get("day")),
+    month: Number(get("month")),
+    weekday: WEEKDAY[get("weekday")] ?? 0,
+  };
+}
+
+/** Whether `date` matches the parsed cron, evaluated in `timeZone` (UTC if omitted). */
+export function cronMatches(cron: ParsedCron, date: Date, timeZone?: string): boolean {
+  const f = fieldsOf(date, timeZone);
+  if (!cron.minute.has(f.minute)) return false;
+  if (!cron.hour.has(f.hour)) return false;
+  if (!cron.month.has(f.month)) return false;
+  const domOk = cron.dayOfMonth.has(f.day);
+  const dowOk = cron.dayOfWeek.has(f.weekday);
   return cron.domRestricted && cron.dowRestricted ? domOk || dowOk : domOk && dowOk;
 }
 
 const MINUTE = 60_000;
 const DEFAULT_LIMIT_MS = 366 * 24 * 60 * MINUTE;
 
-/** The next fire strictly after `after`, or null if none within `limitMs`. */
+export type NextFireOptions = { timeZone?: string; limitMs?: number };
+
+/** The next fire strictly after `after` (evaluated in `timeZone`), or null if none within `limitMs`. */
 export function nextFireAfter(
   expr: string | ParsedCron,
   after: Date,
-  limitMs = DEFAULT_LIMIT_MS,
+  opts: NextFireOptions = {},
 ): Date | null {
+  const { timeZone, limitMs = DEFAULT_LIMIT_MS } = opts;
   const cron = typeof expr === "string" ? parseCron(expr) : expr;
   const startMs = Math.floor(after.getTime() / MINUTE) * MINUTE + MINUTE; // next whole minute
   const limit = after.getTime() + limitMs;
   for (let t = startMs; t <= limit; t += MINUTE) {
-    if (cronMatches(cron, new Date(t))) return new Date(t);
+    if (cronMatches(cron, new Date(t), timeZone)) return new Date(t);
   }
   return null;
 }
 
-/** All fire epochs in the half-open window (afterMs, untilMs]. */
-export function fireTimesBetween(expr: string, afterMs: number, untilMs: number): number[] {
+/** All fire epochs in the half-open window (afterMs, untilMs], evaluated in `timeZone`. */
+export function fireTimesBetween(
+  expr: string,
+  afterMs: number,
+  untilMs: number,
+  timeZone?: string,
+): number[] {
   const cron = parseCron(expr);
   const out: number[] = [];
   let cursor = afterMs;
   while (out.length < 100_000) {
-    const next = nextFireAfter(cron, new Date(cursor), untilMs - cursor + MINUTE);
+    const next = nextFireAfter(cron, new Date(cursor), { timeZone, limitMs: untilMs - cursor + MINUTE });
     if (next === null || next.getTime() > untilMs) break;
     out.push(next.getTime());
     cursor = next.getTime();

@@ -34,3 +34,10 @@ test("fireTimesBetween enumerates a window (exclusive start, inclusive end)", ()
     Date.UTC(2026, 0, 1, 0, 3),
   ]);
 });
+
+test("cronMatches evaluates in a given timezone", () => {
+  const at9 = parseCron("0 9 * * *");
+  const utc1400 = new Date(Date.UTC(2026, 0, 2, 14, 0));
+  expect(cronMatches(at9, utc1400, "America/New_York")).toBe(true); // 09:00 EST
+  expect(cronMatches(at9, utc1400)).toBe(false); // 14:00 in UTC
+});
