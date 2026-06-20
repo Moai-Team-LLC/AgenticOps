@@ -1,6 +1,7 @@
 # AgenticOps
 
 [![Agentic Product Standard: Fleet operations](https://img.shields.io/badge/Agentic_Product_Standard-Fleet_operations-1E607A)](https://github.com/Moai-Team-LLC/agentic-product-standard/blob/main/SCORECARD.md)
+[![CI](https://github.com/Moai-Team-LLC/AgenticOps/actions/workflows/ci.yml/badge.svg)](https://github.com/Moai-Team-LLC/AgenticOps/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-blue)](LICENSE)
 
 **Runtime & fleet operations for agentic products.** The reference implementation
@@ -42,6 +43,27 @@ a real fleet exists.
 | `src/backlog` | durable backlog (M2) | ✅ SQLite (bun:sqlite) |
 | `src/telemetry` | fleet observability (M3) | ✅ audit + health |
 | `src/policy` | inter-agent call matrix (M3) | ✅ default-deny |
+
+## Requirements
+
+AgenticOps is **Bun-native** — it uses `bun:sqlite` and `bun:test`, so it runs on
+[Bun](https://bun.sh) ≥ 1.1, not Node. There is no build step; the TypeScript runs
+directly.
+
+## Install & run
+
+```bash
+bun install
+bun run typecheck   # tsc --noEmit
+bun test            # 22 tests
+bun examples/end-to-end.ts
+```
+
+Add it to your own Bun project as a git dependency:
+
+```bash
+bun add github:Moai-Team-LLC/AgenticOps
+```
 
 ## Quick look
 
