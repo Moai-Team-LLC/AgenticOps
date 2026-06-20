@@ -1,6 +1,6 @@
 {
   "name": "agenticops",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Runtime & fleet operations for agentic products — the reference implementation of the Agentic Product Standard's Fleet operations surface.",
   "type": "module",
   "license": "Apache-2.0",
@@ -9,6 +9,9 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/Moai-Team-LLC/AgenticOps.git"
+  },
+  "engines": {
+    "bun": ">=1.1.0"
   },
   "keywords": [
     "agents",
